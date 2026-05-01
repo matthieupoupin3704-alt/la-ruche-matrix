@@ -481,25 +481,25 @@ function sendDrawing(){
   fetch('/draw',{method:'POST',body:hex}).then(()=>setStatus('Dessin affiché')).catch(()=>setStatus('Erreur'));
 }
 function sendRucheLogo(){
-  dCtx.fillStyle='black'; dCtx.fillRect(0,0,matW,matH); dCtx.fillStyle='white';
-  const drawHex=(cx,cy,R)=>{
-    const hx=Math.round(R*0.8660254), hy=Math.round(R*0.5);
-    const pts=[[cx,cy-R],[cx+hx,cy-hy],[cx+hx,cy+hy],[cx,cy+R],[cx-hx,cy+hy],[cx-hx,cy-hy]];
-    for(let i=0;i<6;i++){const a=pts[i],b=pts[(i+1)%6]; bresenham(a[0],a[1],b[0],b[1]);}
+  const LOGOS={
+    '16x16': '00000000008003600c1810041004100410041004100410040c18036000800000',
+    '32x16': '00000000000000000000800000036000000cd800001494000015dc00001b64000012240000136c00001dd40000149400000d9800000360000000800000000000',
+    '64x16': '00000000000000000000000000000000000000008000000000000003600000000000000cd8000000000000149400000000000015dc0000000000001b640000000000001224000000000000136c0000000000001dd400000000000014940000000000000d98000000000000036000000000000000800000000000000000000000',
+    '32x32': '00000000000000000000000000000000000000000000c00000033000000c1c00003b6f0000e082c003208220022082200220832002db6ce00304102002041020020410200204102002041060039b6da002608220022082200220826001a08380007b6e00001c1800000660000001800000000000000000000000000000000000'
   };
-  const cx=Math.floor(matW/2), cy=Math.floor(matH/2);
-  let Rbig,Rsmall,full;
-  if(matH>=28){Rbig=12;Rsmall=4;full=true;}else{Rbig=7;Rsmall=2;full=false;}
-  drawHex(cx,cy,Rbig);
-  if(full){
-    drawHex(cx,cy,Rsmall);
-    const dHx=Math.round(Rsmall*1.7320508),dDx=Math.round(Rsmall*0.8660254),dDy=Math.round(Rsmall*1.5);
-    drawHex(cx-dHx,cy,Rsmall); drawHex(cx+dHx,cy,Rsmall);
-    drawHex(cx-dDx,cy-dDy,Rsmall); drawHex(cx+dDx,cy-dDy,Rsmall);
-    drawHex(cx-dDx,cy+dDy,Rsmall); drawHex(cx+dDx,cy+dDy,Rsmall);
-  } else { drawHex(cx,cy,Rsmall); }
-  const n=matW*matH; const data=dCtx.getImageData(0,0,matW,matH).data; let hex='';
-  for(let p=0;p<n;p+=4){let val=((data[p*4]>127?1:0)<<3)|((data[(p+1)*4]>127?1:0)<<2)|((data[(p+2)*4]>127?1:0)<<1)|(data[(p+3)*4]>127?1:0); hex+=val.toString(16);}
+  const key=matW+'x'+matH;
+  const hex=LOGOS[key];
+  if(!hex){setStatus('Logo non disponible pour cette topo');return;}
+  // Affiche aussi sur le canvas de dessin
+  const n=matW*matH;
+  dCtx.fillStyle='black'; dCtx.fillRect(0,0,matW,matH);
+  dCtx.fillStyle='white';
+  for(let i=0;i<hex.length;i++){
+    const v=parseInt(hex[i],16);
+    for(let b=3;b>=0;b--){
+      if(v&(1<<b)){const p=i*4+(3-b); dCtx.fillRect(p%matW,Math.floor(p/matW),1,1);}
+    }
+  }
   fetch('/draw',{method:'POST',body:hex}).then(()=>setStatus('Logo Ruche affiché')).catch(()=>setStatus('Erreur'));
 }
 function buildGrid(){
@@ -884,7 +884,7 @@ void ledTask(void*) {
                 gfxText.print(messageGlobal);
             }
 
-            compositeFrame();      // superpose texte/fond → finalBuffer[]
+            compositeFrame();      // superpose texte/fond -> finalBuffer[]
             xSemaphoreGive(matrixMutex);
             flushToDisplay();      // réordonne + envoie aux LEDs (hors mutex car hardwareBuffer est privé à cette tâche)
         }
