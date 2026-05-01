@@ -23,6 +23,37 @@
 #include "effects.h"
 #include <FastLED.h>
 
+// --- config moteurs ---
+// L'ATmega (Marlin) est connecté via le connecteur NXT de la Megatronics (Serial3 ATmega).
+// L'ESP32 utilise Serial1 (GPIO43=TX, GPIO44=RX) avec un pont logique 3.3V↔5V.
+// L'ESP envoie du G-code texte, Marlin l'exécute.
+
+static constexpr uint8_t  MOTOR_TX    = 43;
+static constexpr uint8_t  MOTOR_RX    = 44;
+static constexpr uint32_t MOTOR_BAUD  = 115200;
+
+// Course maximale en mm (software endstops Marlin)
+static constexpr float    MOTOR_X_MAX = 350.0f;
+static constexpr float    MOTOR_Y_MAX = 440.0f;
+
+// Position actuelle estimée (pas d'endstops → on fait confiance à Marlin)
+volatile float motorX = 0.0f;
+volatile float motorY = 0.0f;
+
+void motorSend(const char* gcode) {
+    Serial1.println(gcode);
+    Serial.printf("[MOTOR] %s\n", gcode);
+}
+
+void motorGoTo(float x, float y, uint16_t feedrate = 3000) {
+    x = constrain(x, 0.0f, MOTOR_X_MAX);
+    y = constrain(y, 0.0f, MOTOR_Y_MAX);
+    motorX = x; motorY = y;
+    char buf[48];
+    snprintf(buf, sizeof(buf), "G1 X%.1f Y%.1f F%d", x, y, feedrate);
+    motorSend(buf);
+}
+
 // --- config matrice ---
 
 static constexpr uint8_t  PIN_DATA    = 13;
@@ -381,6 +412,38 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(<!DOCTYPE html>
     <div class="fx-grid" id="fxGrid"></div>
   </div>
 
+  <div class="card" id="motorCard">
+    <div class="sec-label">Moteurs</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="slider-row" style="margin:0;">
+        <div class="slider-meta"><span class="slider-name">X</span><span class="slider-val" id="mxVal">0</span></div>
+        <input type="range" id="mxSlider" min="0" max="350" value="0" oninput="mxVal.textContent=this.value" onchange="motorGoto()">
+      </div>
+      <div class="slider-row" style="margin:0;">
+        <div class="slider-meta"><span class="slider-name">Y</span><span class="slider-val" id="myVal">0</span></div>
+        <input type="range" id="mySlider" min="0" max="440" value="0" oninput="myVal.textContent=this.value" onchange="motorGoto()">
+      </div>
+    </div>
+    <div class="fx-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+      <button class="eff-btn" onclick="motorCmd('center')">Centre</button>
+      <button class="eff-btn" onclick="motorCmd('top')">Haut</button>
+      <button class="eff-btn" onclick="motorCmd('bottom')">Bas</button>
+      <button class="eff-btn" onclick="motorCmd('left')">Gauche</button>
+      <button class="eff-btn" onclick="motorCmd('right')">Droite</button>
+      <button class="eff-btn" onclick="motorCmd('topo_center')">Topo</button>
+      <button class="eff-btn" onclick="motorCmd('scan_h')">Scan H</button>
+      <button class="eff-btn" onclick="motorCmd('scan_v')">Scan V</button>
+      <button class="eff-btn" onclick="motorCmd('figure8')">Fig.8</button>
+      <button class="eff-btn" onclick="motorCmd('beat')">Beat</button>
+      <button class="eff-btn" onclick="motorCmd('wander')">Wander</button>
+      <button class="eff-btn" onclick="motorCmd('reset')">Origine</button>
+    </div>
+    <button class="btn-reset" onclick="motorCmd('stop')" style="color:#ff5555;border-color:rgba(255,85,85,0.3);">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      Arrêt d'urgence (M410)
+    </button>
+  </div>
+
   <div class="footer">Développé rucheusement par<br><strong>Matthieu POUPIN</strong> et <strong>Marceau GUIGUI</strong></div>
 </div>
 
@@ -522,6 +585,14 @@ setInterval(()=>{
 },2000);
 function resetAuto(){ fetch('/msg?reset=1').then(()=>{ autoMode=true; syncToggle(); buildGrid(); switchTab('txt'); setStatus('Mode automatique'); }).catch(()=>setStatus('Erreur')); }
 function setStatus(msg){ const s=document.getElementById('status'); s.textContent=msg; s.classList.add('show'); clearTimeout(statusTimer); statusTimer=setTimeout(()=>s.classList.remove('show'),2000); }
+function motorGoto(){
+  const x=document.getElementById('mxSlider').value;
+  const y=document.getElementById('mySlider').value;
+  fetch('/motor?cmd=goto&x='+x+'&y='+y).catch(()=>setStatus('Moteur: erreur'));
+}
+function motorCmd(cmd){
+  fetch('/motor?cmd='+cmd).then(()=>setStatus('Moteur: '+cmd)).catch(()=>setStatus('Moteur: erreur'));
+}
 </script>
 </body>
 </html>
@@ -666,6 +737,69 @@ void handleStatus() {
 }
 
 
+// --- moteurs ---
+
+void handleMotor() {
+    if (!server.hasArg("cmd")) { server.send(400, "text/plain", "Missing cmd"); return; }
+    const String cmd = server.arg("cmd");
+
+    if (cmd == "goto") {
+        float x = server.hasArg("x") ? server.arg("x").toFloat() : motorX;
+        float y = server.hasArg("y") ? server.arg("y").toFloat() : motorY;
+        motorGoTo(x, y);
+    } else if (cmd == "stop") {
+        motorSend("M410");  // arrêt urgence Marlin
+    } else if (cmd == "reset") {
+        motorX = 0; motorY = 0;
+        motorSend("G92 X0 Y0");
+    } else if (cmd == "center")       { motorGoTo(175, 220); }
+    else if (cmd == "top")            { motorGoTo(motorX, MOTOR_Y_MAX); }
+    else if (cmd == "bottom")         { motorGoTo(motorX, 0); }
+    else if (cmd == "left")           { motorGoTo(0, motorY); }
+    else if (cmd == "right")          { motorGoTo(MOTOR_X_MAX, motorY); }
+    else if (cmd == "top_left")       { motorGoTo(0, MOTOR_Y_MAX); }
+    else if (cmd == "top_right")      { motorGoTo(MOTOR_X_MAX, MOTOR_Y_MAX); }
+    else if (cmd == "bottom_left")    { motorGoTo(0, 0); }
+    else if (cmd == "bottom_right")   { motorGoTo(MOTOR_X_MAX, 0); }
+    else if (cmd == "scan_h") {
+        // Aller gauche puis droite (deux commandes enchaînées, Marlin les met en queue)
+        motorSend("G1 X0 F2000");
+        motorSend("G1 X350 F2000");
+    } else if (cmd == "scan_v") {
+        motorSend("G1 Y0 F2000");
+        motorSend("G1 Y440 F2000");
+    } else if (cmd == "figure8") {
+        motorSend("G1 X87  Y110 F3000");
+        motorSend("G1 X263 Y330 F3000");
+        motorSend("G1 X87  Y330 F3000");
+        motorSend("G1 X263 Y110 F3000");
+        motorSend("G1 X175 Y220 F3000");
+    } else if (cmd == "beat") {
+        // Secousse verticale rapide
+        for (uint8_t i = 0; i < 4; i++) {
+            char buf[32];
+            snprintf(buf, sizeof(buf), "G1 Y%.1f F8000", motorY + 10.0f);
+            motorSend(buf);
+            snprintf(buf, sizeof(buf), "G1 Y%.1f F8000", motorY);
+            motorSend(buf);
+        }
+    } else if (cmd == "wander") {
+        motorGoTo(random(0, 350), random(0, 440), 1500);
+    } else if (cmd == "topo_center") {
+        switch (topoActuelle) {
+            case Topologie::T1x1: motorGoTo(175, 220); break;
+            case Topologie::T1x2: motorGoTo(87,  220); break;
+            case Topologie::T1x4: motorGoTo(43,  220); break;
+            case Topologie::T2x2: motorGoTo(175, 110); break;
+        }
+    } else {
+        server.send(400, "text/plain", "Unknown cmd"); return;
+    }
+
+    server.send(200, "text/plain", "OK");
+}
+
+
 // --- composite frame ---
 // Fusionne l'effet de fond (leds[]) avec le texte ou le dessin.
 // Algorithme en deux passes :
@@ -797,11 +931,17 @@ void setup() {
     Serial.print("[RESEAU] AP: "); Serial.println(WiFi.softAPIP());
     Serial.printf("[RESEAU] Topo: %d (%dx%d, %d LEDs)\n", savedTopo, MATRIX_W, MATRIX_H, NUM_LEDS);
 
+    Serial1.begin(MOTOR_BAUD, SERIAL_8N1, MOTOR_RX, MOTOR_TX);
+    delay(200);
+    Serial1.println("G92 X0 Y0");  // origine au démarrage (pas d'endstops physiques)
+    Serial.println("[MOTOR] Serial1 init, origine G92 X0 Y0 envoyee");
+
     server.on("/",       handleRoot);
     server.on("/msg",    handleMsg);
     server.on("/draw",   HTTP_POST, handleDraw);
     server.on("/frame",  HTTP_GET,  handleFrame);
     server.on("/status", handleStatus);
+    server.on("/motor",  handleMotor);
     server.on("/serial", []() { server.send(200, "text/html", "<style>body{background:#0d0d0f;color:#a0ffa0;font-family:monospace;padding:16px;}</style>" + webSerialBuffer); });
     server.on("/ping",   []() { server.send(200, "text/plain", "Pong!"); });
     server.onNotFound(  []() { server.send(404, "text/plain", "Not found"); });
