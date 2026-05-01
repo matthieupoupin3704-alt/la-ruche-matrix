@@ -2,7 +2,7 @@
 #include <FastLED.h>
 #include <math.h>
 
-// Dimensions dynamiques (définies dans main.cpp)
+// Variables de topologie definies dans main.cpp
 extern uint8_t  matW;
 extern uint8_t  matH;
 extern uint16_t NUM_LEDS;
@@ -23,10 +23,9 @@ extern volatile uint8_t audioLevel;
 static constexpr uint8_t HUE_DELTA = 15;
 static constexpr uint8_t BRI_BASE  = 80;
 
-// Pixel nul partagé (thread-safe en lecture seule — on n'écrit jamais dedans après init)
 namespace { CRGB _nullPx = CRGB::Black; }
 
-// Accès sécurisé — retourne une ref vers _nullPx si hors-limites
+// Acces aux pixels, retourne _nullPx si hors-limites
 static inline CRGB& _px(int16_t x, int16_t y) {
     if (static_cast<uint16_t>(x) >= static_cast<uint16_t>(MATRIX_W) ||
         static_cast<uint16_t>(y) >= static_cast<uint16_t>(MATRIX_H))
@@ -34,23 +33,19 @@ static inline CRGB& _px(int16_t x, int16_t y) {
     return pLEDs[static_cast<uint16_t>(y) * MATRIX_W + x];
 }
 
-// Les 3 couleurs analogues
 static inline CRGB _c0(uint8_t bri = 220) { return CHSV(COULEUR_HUE - HUE_DELTA, 255, bri); }
 static inline CRGB _c1(uint8_t bri = 220) { return CHSV(COULEUR_HUE,             240, bri); }
 static inline CRGB _c2(uint8_t bri = 220) { return CHSV(COULEUR_HUE + HUE_DELTA, 220, bri); }
-
-// Fond coloré
-static inline CRGB _base() { return CHSV(COULEUR_HUE, 200, BRI_BASE); }
+static inline CRGB _base()                { return CHSV(COULEUR_HUE, 200, BRI_BASE); }
 static inline CRGB _white(uint8_t bri = 255) { return CRGB(bri, bri, bri); }
 
-// Luminosité avec plancher garanti
+// Luminosite normalisee avec plancher BRI_BASE
 static inline uint8_t _bri(float normalized) {
     if (normalized < 0.0f) normalized = 0.0f;
     if (normalized > 1.0f) normalized = 1.0f;
     return (uint8_t)(BRI_BASE + normalized * (255 - BRI_BASE));
 }
 
-// Palette feu
 static inline CRGBPalette16 _firePalette() {
     return CRGBPalette16(
         CHSV(COULEUR_HUE, 255, 10),
@@ -65,10 +60,8 @@ static inline CRGBPalette16 _firePalette() {
     );
 }
 
-// Helper float aléatoire 0..1
 static inline float random8f() { return random8() / 255.0f; }
 
-// Tracé de ligne Bresenham
 static inline void _drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, CRGB color) {
     int16_t dx = abs(x1-x0), dy = abs(y1-y0);
     int16_t sx = x0<x1?1:-1, sy = y0<y1?1:-1, err = dx-dy;
@@ -83,7 +76,7 @@ static inline void _drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, CRG
 
 namespace effects {
 
-// --- état global ---
+// --- etat interne des effets ---
 static uint8_t _heat       [MAX_LEDS_EFF];
 static float   _bY  [5],   _bVY[5];
 static uint8_t _bX  [5];
@@ -96,7 +89,7 @@ static float   _angMap    [MAX_LEDS_EFF];
 static float   _t    = 0.0f;
 static float   _lavaT = 0.0f;
 
-// --- flags init effets stateful ---
+// flags d'init (reset quand la topologie change)
 static bool _twInit   = false;
 static bool _bb2d     = false;
 static bool _sfInit   = false;
@@ -2049,7 +2042,7 @@ void dvdBounce() {
     }
 }
 
-// --- interface publique ---
+// --- interface ---
 typedef void (*EffectFn)();
 static const EffectFn _table[COUNT] = {
     solidPulse,     fire,           meteorRain,     twinkle,

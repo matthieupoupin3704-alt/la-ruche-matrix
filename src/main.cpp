@@ -24,19 +24,14 @@
 #include <FastLED.h>
 
 // --- config moteurs ---
-// L'ATmega (Marlin) est connecté via le connecteur NXT de la Megatronics (Serial3 ATmega).
-// L'ESP32 utilise Serial1 (GPIO43=TX, GPIO44=RX) avec un pont logique 3.3V↔5V.
-// L'ESP envoie du G-code texte, Marlin l'exécute.
+// ESP32 Serial1 -> pont 3.3V/5V -> Megatronics Serial3 (connecteur NXT). G-code texte.
 
 static constexpr uint8_t  MOTOR_TX    = 43;
 static constexpr uint8_t  MOTOR_RX    = 44;
 static constexpr uint32_t MOTOR_BAUD  = 115200;
-
-// Course maximale en mm (software endstops Marlin)
-static constexpr float    MOTOR_X_MAX = 350.0f;
+static constexpr float    MOTOR_X_MAX = 350.0f;  // mm, software endstops Marlin
 static constexpr float    MOTOR_Y_MAX = 440.0f;
 
-// Position actuelle estimée (pas d'endstops → on fait confiance à Marlin)
 volatile float motorX = 0.0f;
 volatile float motorY = 0.0f;
 
@@ -59,23 +54,20 @@ void motorGoTo(float x, float y, uint16_t feedrate = 3000) {
 static constexpr uint8_t  PIN_DATA    = 13;
 static constexpr uint8_t  MIC_PIN     = 4;
 static constexpr bool     MIC_ENABLED = false;
-static constexpr uint8_t  TILE_W      = 16;  // un panneau WS2812B fait 16 colonnes
-static constexpr uint8_t  TILE_H      = 16;  // et 16 lignes (256 LEDs par tuile)
-// MAX_LEDS est la capacité maximale du tableau : 4 tuiles (config 1×4 ou 2×2).
-// On alloue toujours pour le pire cas afin d'éviter les réallocations dynamiques.
-static constexpr uint16_t MAX_LEDS    = TILE_W * TILE_H * 4;
+static constexpr uint8_t  TILE_W      = 16;
+static constexpr uint8_t  TILE_H      = 16;
+static constexpr uint16_t MAX_LEDS    = TILE_W * TILE_H * 4;  // pire cas : 4 tuiles
 
-static constexpr uint32_t DUREE_EFFET_MS = 15000;  // durée avant rotation automatique des effets
+static constexpr uint32_t DUREE_EFFET_MS = 15000;
 #ifdef WOKWI_SIM
-static constexpr uint8_t  TARGET_FPS  = 10;  // FPS réduit sur Wokwi : le simulateur est lent
+static constexpr uint8_t  TARGET_FPS  = 10;  // simulateur lent
 #else
 static constexpr uint8_t  TARGET_FPS  = 30;
 #endif
-static constexpr uint32_t FRAME_DELAY = 1000 / TARGET_FPS;  // période d'une frame en ms
+static constexpr uint32_t FRAME_DELAY = 1000 / TARGET_FPS;
 
 // --- topologie ---
 
-// Décrit l'arrangement physique des panneaux : nombre de tuiles en largeur × hauteur.
 enum class Topologie : uint8_t { T1x1 = 0, T1x2 = 1, T1x4 = 2, T2x2 = 3 };
 
 uint8_t   matW        = 32;
@@ -99,9 +91,7 @@ void applyTopologie(Topologie t) {
 WebServer server(80);
 String    webSerialBuffer;
 
-// Mutex FreeRTOS qui protège tous les buffers partagés entre la tâche LED (cœur 1)
-// et la tâche web (cœur 0). Sans lui, une requête HTTP qui modifie leds[] pendant
-// un FastLED.show() provoquerait des corruptions visuelles aléatoires.
+// Protège les buffers partagés entre la tâche LED (cœur 1) et le serveur web (cœur 0).
 SemaphoreHandle_t matrixMutex;
 
 String  messageGlobal    = "La Ruche";
@@ -120,17 +110,12 @@ bool     modeDessin      = false;
 volatile bool pendingClearAll = false;
 
 // --- buffers LED ---
-// Pipeline à trois étages :
-//   leds[]          ← les effets écrivent ici (espace "logique" XY linéaire)
-//   finalBuffer[]   ← compositeFrame() superpose le texte/masque par-dessus leds[]
-//   hardwareBuffer[]← flushToDisplay() réordonne finalBuffer[] selon le câblage serpentin
-// Cette séparation permet de modifier les effets et le texte indépendamment,
-// sans jamais écrire directement dans l'ordre physique des LEDs.
+// leds[] -> effets -> compositeFrame() -> finalBuffer[] -> flushToDisplay() -> hardwareBuffer[] -> LEDs
 
 CRGB    leds         [MAX_LEDS];
 CRGB    finalBuffer  [MAX_LEDS];
 CRGB    hardwareBuffer[MAX_LEDS];
-uint8_t textMask     [MAX_LEDS];  // 1 = pixel de texte/dessin actif, 0 = fond
+uint8_t textMask     [MAX_LEDS];  // 1 = pixel texte/dessin actif
 
 CRGB* pLEDs = leds;
 
@@ -140,10 +125,9 @@ CRGB    cachedTextColor    = CRGB::White;
 CRGB    cachedOutlineColor = CRGB::Black;
 uint8_t lastHueForText     = 255;
 
-// Choisit automatiquement texte noir ou blanc selon la luminance perçue de la teinte.
-// La pondération ITU-R BT.601 (299/587/114) reflète la sensibilité de l'œil humain.
+// Texte noir ou blanc selon la luminance de la teinte (pondération BT.601).
 void updateTextColors() {
-    if (COULEUR_HUE == lastHueForText) return;  // recalcul uniquement si la teinte a changé
+    if (COULEUR_HUE == lastHueForText) return;
     lastHueForText = COULEUR_HUE;
     CRGB base = CHSV(COULEUR_HUE, 240, 200);
     uint32_t luma = static_cast<uint32_t>(base.r) * 299u
@@ -155,31 +139,25 @@ void updateTextColors() {
 }
 
 // --- mapping XY ---
-// Traduit une coordonnée (x, y) logique en index physique dans le tableau de LEDs.
-// Les panneaux WS2812B 16×16 sont câblés en serpentin COLONNE par colonne :
-// la colonne 0 part du haut, la colonne 1 repart du bas, etc.
-// Ce câblage est dicté par le fabricant du panneau et non modifiable.
-// En cas de coordonnées hors-limites, on retourne MAX_LEDS (index "poubelle" ignoré).
+// Coordonnées logiques (x,y) vers index physique. Retourne MAX_LEDS si hors-limites.
+// Les panneaux sont cablés en serpentin colonne par colonne (dicte par le fabricant).
 
 #ifdef WOKWI_SIM
-// Wokwi : ordre linéaire ligne par ligne, gauche→droite
 uint16_t XY(uint8_t x, uint8_t y) {
     if (x >= MATRIX_W || y >= MATRIX_H) return MAX_LEDS;
     return static_cast<uint16_t>(y) * MATRIX_W + x;
 }
 #else
-// Hardware réel : serpentin colonne par colonne
-// Colonnes paires haut→bas, colonnes impaires bas→haut
 uint16_t XY(uint8_t x, uint8_t y) {
     if (x >= MATRIX_W || y >= MATRIX_H) return MAX_LEDS;
 
-    const uint8_t  lx  = x % TILE_W;          // colonne locale dans la tuile
-    const uint8_t  ly  = y % TILE_H;          // ligne locale dans la tuile
-    const uint8_t  px  = x / TILE_W;          // indice de tuile en X
-    const uint8_t  py  = y / TILE_H;          // indice de tuile en Y
-    const uint8_t  tpr = MATRIX_W / TILE_W;   // nombre de tuiles par rangée
+    const uint8_t  lx  = x % TILE_W;
+    const uint8_t  ly  = y % TILE_H;
+    const uint8_t  px  = x / TILE_W;
+    const uint8_t  py  = y / TILE_H;
+    const uint8_t  tpr = MATRIX_W / TILE_W;
     const uint16_t panelOffset = (static_cast<uint16_t>(py) * tpr + px) * (TILE_W * TILE_H);
-    // Inversion de direction sur les colonnes impaires : c'est le cœur du serpentin
+    // colonnes impaires inversees : serpentin
     const uint16_t localIdx    = (lx & 1u) ? (lx * TILE_H + (TILE_H - 1u - ly))
                                             : (lx * TILE_H + ly);
     return panelOffset + localIdx;
@@ -607,7 +585,7 @@ void handleFrame() {
     xSemaphoreTake(matrixMutex, portMAX_DELAY);
     const uint16_t n = NUM_LEDS;
     static uint8_t tmpFrame[MAX_LEDS * 3];
-    // CRGB est packed (r,g,b) — copie directe valide
+    // CRGB est packed (r,g,b), copie directe valide
     memcpy(tmpFrame, finalBuffer, n * 3u);
     xSemaphoreGive(matrixMutex);
 
@@ -616,14 +594,11 @@ void handleFrame() {
     server.client().write(tmpFrame, n * 3u);
 }
 
-// Reçoit un dessin depuis l'interface web, encodé en hexadécimal.
-// Format compact : chaque caractère hex (0-F) encode 4 pixels en binaire.
-// Exemple : 'A' = 0b1010 → pixels 0,2 allumés, 1,3 éteints.
-// Ce choix divise par 4 la taille du payload (vs un octet par pixel).
+// Dessin recu en hex nibbles : 1 caractere = 4 pixels en binaire (ex: 'A' = 1010).
 void handleDraw() {
     if (!server.hasArg("plain")) { server.send(400, "text/plain", "Missing payload"); return; }
     const String& payload = server.arg("plain");
-    const uint16_t expectedLen = NUM_LEDS / 4u;  // un caractère = 4 pixels
+    const uint16_t expectedLen = NUM_LEDS / 4u;
     if (payload.length() < expectedLen) { server.send(400, "text/plain", "Payload too short"); return; }
 
     xSemaphoreTake(matrixMutex, portMAX_DELAY);
@@ -632,11 +607,9 @@ void handleDraw() {
     memset(textMask, 0, MAX_LEDS);
     for (uint16_t i = 0; i < expectedLen; i++) {
         char c = payload[i];
-        // Décodage manuel du nibble hex (A-F majuscule, a-f minuscule, 0-9)
         uint8_t val = (c >= 'A' && c <= 'F') ? uint8_t(c - 'A' + 10) :
                       (c >= 'a' && c <= 'f') ? uint8_t(c - 'a' + 10) :
                       (c >= '0' && c <= '9') ? uint8_t(c - '0') : 0u;
-        // Extraction bit par bit des 4 pixels encodés dans ce nibble
         textMask[i*4+0] = (val >> 3) & 1u;
         textMask[i*4+1] = (val >> 2) & 1u;
         textMask[i*4+2] = (val >> 1) & 1u;
@@ -801,16 +774,10 @@ void handleMotor() {
 
 
 // --- composite frame ---
-// Fusionne l'effet de fond (leds[]) avec le texte ou le dessin.
-// Algorithme en deux passes :
-//   1. Outline : pour chaque pixel de texte actif, on peint ses 8 voisins en couleur
-//      de contour — cela garantit la lisibilité quelle que soit la couleur du fond.
-//   2. Texte : on écrase les pixels du masque avec la couleur du texte, par-dessus le contour.
-// L'ordre des passes est intentionnel : l'outline d'abord, le texte ensuite.
+// Passe 1 : outline (voisins des pixels texte). Passe 2 : texte par-dessus.
 
 void compositeFrame() {
     if (!texteEnCours && !modeDessin) {
-        // Pas de texte ni de dessin : copie directe de leds[] dans finalBuffer[]
         memcpy(finalBuffer, leds, NUM_LEDS * sizeof(CRGB));
         return;
     }
@@ -818,7 +785,7 @@ void compositeFrame() {
     updateTextColors();
     memcpy(finalBuffer, leds, NUM_LEDS * sizeof(CRGB));
 
-    // Passe 1 — Contour (outline) : dilate chaque pixel de texte sur ses voisins
+    // passe 1 : outline
     for (uint16_t y = 0; y < MATRIX_H; y++) {
         const uint16_t row = y * MATRIX_W;
         const uint16_t above = (y > 0)            ? row - MATRIX_W : row;
@@ -839,7 +806,7 @@ void compositeFrame() {
             finalBuffer[below + x] = cachedOutlineColor;
         }
     }
-    // Passe 2 — Texte par-dessus le contour
+    // passe 2 : texte
     for (uint16_t i = 0; i < NUM_LEDS; i++)
         if (textMask[i]) finalBuffer[i] = cachedTextColor;
 }
@@ -872,13 +839,9 @@ void sampleAudio() {
 
 
 // --- flush display ---
-// Réordonne finalBuffer[] (espace logique, ligne par ligne) vers hardwareBuffer[]
-// (espace physique, ordre de câblage serpentin) via XY(), puis envoie les données
-// aux LEDs. On ne peut pas écrire directement dans hardwareBuffer[] pendant les
-// effets, car XY() est couteuse et les effets supposent un adressage XY simple.
 
 void flushToDisplay() {
-    memset(hardwareBuffer, 0, MAX_LEDS * sizeof(CRGB));  // efface les LEDs hors topologie active
+    memset(hardwareBuffer, 0, MAX_LEDS * sizeof(CRGB));
     xSemaphoreTake(matrixMutex, portMAX_DELAY);
     for (uint16_t y = 0; y < MATRIX_H; y++)
         for (uint16_t x = 0; x < MATRIX_W; x++) {
@@ -887,7 +850,7 @@ void flushToDisplay() {
                 hardwareBuffer[phys] = finalBuffer[y * MATRIX_W + x];
         }
     xSemaphoreGive(matrixMutex);
-    FastLED.show();  // déclenche l'envoi DMA vers les WS2812B (bloquant ~1.3 ms pour 256 LEDs)
+    FastLED.show();
 }
 
 
@@ -895,8 +858,6 @@ void flushToDisplay() {
 
 void ledTask(void*);
 
-// La tâche web tourne sur le cœur 0 et se charge uniquement de traiter les requêtes HTTP.
-// La séparation sur deux cœurs évite que la latence réseau ne perturbe le rendu LED.
 void webServerTask(void*) {
     server.begin();
     Serial.println("[RESEAU] Serveur Web demarre sur Coeur 0");
@@ -911,7 +872,7 @@ void setup() {
 
     Preferences prefs;
 #ifdef WOKWI_SIM
-    uint8_t savedTopo = 2;  // forcer 1x4 sur Wokwi (diagram.json = 64x16)
+    uint8_t savedTopo = 2;  // 1x4 force sur Wokwi
 #else
     uint8_t savedTopo = 1;
     if (prefs.begin("matrix", true)) { savedTopo = prefs.getUChar("topo", 1); prefs.end(); }
@@ -964,15 +925,10 @@ void setup() {
 
 
 // --- tâche LED (cœur 1) ---
-// Boucle principale du rendu. FreeRTOS permet de la faire tourner sur le cœur 1
-// en parallèle du serveur web sur le cœur 0, sans preemption ni ralentissement mutuel.
-// Le mutex protège la section critique où on lit/écrit les buffers partagés.
 
 void ledTask(void*) {
     Serial.println("[LED] Tache LED demarree sur Coeur 1");
     for (;;) {
-        // Un changement de topologie demande d'éteindre toutes les LEDs immédiatement
-        // pour éviter d'afficher des artefacts pendant la transition.
         if (pendingClearAll) {
             pendingClearAll = false;
             xSemaphoreTake(matrixMutex, portMAX_DELAY);
@@ -989,7 +945,6 @@ void ledTask(void*) {
 
             xSemaphoreTake(matrixMutex, portMAX_DELAY);
 
-            // Rotation automatique des effets toutes les DUREE_EFFET_MS millisecondes
             if (effetAutomatique && (now - dernierChangement > DUREE_EFFET_MS)) {
                 effetActuel    = (effetActuel + 1) % effects::COUNT;
                 policeActuelle = static_cast<uint8_t>(random(NUM_FONTS));
@@ -998,15 +953,12 @@ void ledTask(void*) {
                 Serial.printf("[AUTO] %s | %s\n", effects::name(effetActuel), FONTS[policeActuelle].name);
             }
 
-            // L'effet écrit dans leds[] en coordonnées logiques (pas dans hardwareBuffer)
             effects::run(effetActuel);
 
             if (texteEnCours && !modeDessin) {
-                // Conversion vitesse [1-100] → intervalle de scroll [120-15 ms/pixel]
                 const uint32_t scrollInterval = static_cast<uint32_t>(map(vitesseEffets, 1, 100, 120, 15));
-                // Rattrapage des frames manquées : on avance textX autant de fois que nécessaire
                 while (now - lastScrollUpdate > scrollInterval) { lastScrollUpdate += scrollInterval; textX--; }
-                if (textX < -textWidth) textX = MATRIX_W;  // reboucle le défilement
+                if (textX < -textWidth) textX = MATRIX_W;
 
                 // Adafruit_GFX dessine dans textMask[] via drawPixel() surchargé (cf. MatrixTextGFX)
                 memset(textMask, 0, NUM_LEDS);
