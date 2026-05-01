@@ -1,0 +1,15 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Project-specific exclusions
+snapshots/
+CLAUDE.md
+docs/schema_electronique_brief.md

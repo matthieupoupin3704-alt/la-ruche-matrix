@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "author": "La Ruche Sim",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0 },
+    {
+      "type": "wokwi-led-matrix",
+      "id": "matrix1",
+      "top": -300,
+      "left": 200,
+      "attrs": { "rows": "16", "cols": "64", "color": "GRB"}
+    }
+  ],
+  "connections": [
+    [ "esp:GND.1", "matrix1:GND",       "black",  [] ],
+    [ "esp:5V",    "matrix1:VCC",       "red",    [] ],
+    [ "esp:13",    "matrix1:DIN",       "orange", [] ],
+    [ "esp:TX",    "$serialMonitor:RX", "",       [] ],
+    [ "esp:RX",    "$serialMonitor:TX", "",       [] ]
+  ]
+}

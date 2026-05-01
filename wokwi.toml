@@ -1,0 +1,8 @@
+[wokwi]
+version = 1
+firmware = ".pio/build/wokwi/firmware.bin"
+elf = ".pio/build/wokwi/firmware.elf"
+
+[[net.forward]]
+from = "127.0.0.1:8080"
+to = ":80"
