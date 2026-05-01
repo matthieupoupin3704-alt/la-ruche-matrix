@@ -13,3 +13,6 @@
 snapshots/
 CLAUDE.md
 docs/
+include/README
+lib/README
+test/README
