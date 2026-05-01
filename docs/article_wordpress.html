@@ -43,7 +43,7 @@
 <!-- /wp:heading -->
 
 <!-- wp:table -->
-<figure class="wp-block-table"><table><thead><tr><th>Composant</th><th>Qté</th><th>Notes</th></tr></thead><tbody><tr><td>ESP32-S3-DevKitC-1</td><td>1</td><td>Le cerveau du projet. Wi-Fi intégré, USB natif</td></tr><tr><td>Dalles LED WS2812B 16×16</td><td>4</td><td>LEDs adressables individuellement, format carré</td></tr><tr><td>Carte Megatronics v3.3</td><td>1</td><td>Récupération — gère l'alimentation et les moteurs</td></tr><tr><td>Alimentation 19.5V (transfo PC modifié)</td><td>1</td><td>Embout modifié pour s'adapter à la Megatronics</td></tr><tr><td>Condensateur 1000µF 10V</td><td>1</td><td>Absorbe les pics de courant des LEDs</td></tr><tr><td>Résistance 330Ω</td><td>1</td><td>Protection sur le fil data entre ESP et panneaux</td></tr><tr><td>Fils, connecteurs, visserie</td><td>—</td><td></td></tr></tbody></table></figure>
+<figure class="wp-block-table"><table><thead><tr><th>Composant</th><th>Qté</th><th>Notes</th></tr></thead><tbody><tr><td>ESP32-S3-DevKitC-1</td><td>1</td><td>Le cerveau du projet. Wi-Fi intégré, USB natif</td></tr><tr><td>Dalles LED WS2812B 16×16</td><td>4</td><td>LEDs adressables individuellement, format carré</td></tr><tr><td>Carte Megatronics v3.3</td><td>1</td><td>Récupération — gère l'alimentation et les moteurs</td></tr><tr><td>Alimentation 19.5V (transfo PC modifié)</td><td>1</td><td>Embout modifié pour s'adapter à la Megatronics</td></tr><tr><td>Condensateur 1000µF 10V</td><td>1</td><td>Absorbe les pics de courant des LEDs</td></tr><tr><td>Résistance 330Ω</td><td>1</td><td>Protection sur le fil data entre ESP et panneaux</td></tr><tr><td>Microphone MAX4466</td><td>1</td><td>Entrée analogique pour le visualiseur audio — gain réglé à −40 dB</td></tr><tr><td>Fils, connecteurs, visserie</td><td>—</td><td></td></tr></tbody></table></figure>
 <!-- /wp:table -->
 
 <!-- wp:heading {"level":3} -->
@@ -286,7 +286,7 @@ LEDs</code></pre>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
-<p><strong>32 animations</strong> — organisées en grille dans l'interface. De la pluie Matrix au couloir de Doom, en passant par Pac-Man, le Jeu de la Vie de Conway, une simulation d'ADN, Pong, un cube 3D en rotation ou encore un visualiseur audio. Chaque animation réagit aux paramètres globaux.</p>
+<p><strong>32 animations</strong> — organisées en grille dans l'interface. De la pluie Matrix au couloir de Doom, en passant par Pac-Man, le Jeu de la Vie de Conway, une simulation d'ADN, Pong, un cube 3D en rotation ou encore un visualiseur audio. Ce dernier utilise un microphone MAX4466 branché sur l'ADC de l'ESP32 — le gain est réglé à −40 dB pour éviter la saturation en environnement soirée. Chaque animation réagit aux paramètres globaux.</p>
 <!-- /wp:paragraph -->
 
 <!-- wp:paragraph -->
