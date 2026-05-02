@@ -1198,7 +1198,7 @@
  * Override with M92
  *                                      X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 5, 50, 400, 0 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80, 800, 400, 0 }  // 1/16 microstepping DRV8825
 
 /**
  * Default Max Feed Rate (linear=mm/s, rotational=°/s)
