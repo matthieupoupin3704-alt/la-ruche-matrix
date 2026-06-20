@@ -1,6 +1,6 @@
 # La Ruche Matrix
 
-**Wi-Fi controlled LED matrix panel for live events — ESP32-S3 + 1 024 WS2812B LEDs on a motorized 2-axis structure.**
+**Wi-Fi controlled LED matrix panel for live events: ESP32-S3 + 1 024 WS2812B LEDs on a motorized 2-axis structure.**
 
 Built by Matthieu POUPIN & Marceau GUIGUI - Option Culture Maker, Eirlab / ENSEIRB-MATMECA, 2026.
 
@@ -255,5 +255,5 @@ Open source. Code and CAD files available in this repository.
 
 ---
 
-*Matthieu POUPIN & Marceau GUIGUI — ENSEIRB-MATMECA, Eirlab, 2026*  
+*Matthieu POUPIN & Marceau GUIGUI - ENSEIRB-MATMECA, Eirlab, 2026*  
 *Full build log: [eirlab.net](https://www.eirlab.net/2026/04/20/lumiere-scenique/)*
