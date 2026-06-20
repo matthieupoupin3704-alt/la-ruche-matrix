@@ -241,6 +241,14 @@ Then add the function to `_table[]`, its name to `_names[]`, and increment `COUN
 
 ---
 
+## Acknowledgements
+
+Thanks to [Eirlab](https://www.eirlab.net/) for providing the workspace, equipment loans, and material purchases that made this project possible.
+
+Special thanks to **Julien Allali**, **Antonio Berejano**, and **Adrien Boussicault** for their guidance and support throughout the project.
+
+---
+
 ## License
 
 Open source. Code and CAD files available in this repository.
