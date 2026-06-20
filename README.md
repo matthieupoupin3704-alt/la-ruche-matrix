@@ -1,11 +1,11 @@
-# La Ruche Matrix 🎛️
+# La Ruche Matrix
 
-**Wi-Fi controlled LED matrix panel for live events — ESP32-S3 + 1024 WS2812B LEDs on a motorized 2-axis structure.**
+**Wi-Fi controlled LED matrix panel for live events — ESP32-S3 + 1 024 WS2812B LEDs on a motorized 2-axis structure.**
 
 Built by Matthieu POUPIN & Marceau GUIGUI - Option Culture Maker, Eirlab / ENSEIRB-MATMECA, 2026.
 
 <p align="center">
-  <img src="https://www.eirlab.net/wp-content/uploads/2026/04/ezgif-735ffa8b635d59f4-576x1024.gif" width="360" alt="La Ruche Matrix in action">
+  <img src="assets/demo-result.gif" width="360" alt="La Ruche Matrix in action">
 </p>
 
 ---
@@ -25,7 +25,7 @@ La Ruche Matrix is an interactive LED panel designed for music events. The audie
 ## Demo
 
 <p align="center">
-  <img src="https://www.eirlab.net/wp-content/uploads/2026/04/ezgif-7c3caaeb452e9fbf-474x1024.gif" width="300" alt="Web interface demo">
+  <img src="assets/demo-interface.gif" width="300" alt="Web interface demo">
 </p>
 
 ---
@@ -44,6 +44,21 @@ La Ruche Matrix is an interactive LED panel designed for music events. The audie
 | BSS138 4-channel level shifter | 1 | 3.3 V ↔ 5 V between ESP32 and Megatronics |
 | MAX9814 microphone | 1 | Audio-reactive animations |
 | Wires, connectors, perfboard | — | |
+
+<p align="center">
+  <img src="assets/ws2812b-panel.jpg" width="400" alt="WS2812B 16×16 panel and connectors">
+  <br><em>WS2812B 16×16 panel — Data In, Power, Data Out</em>
+</p>
+
+<p align="center">
+  <img src="assets/megatronics.jpg" width="400" alt="Megatronics v3.3">
+  <br><em>Megatronics v3.3 — runs Marlin, controls the stepper motors</em>
+</p>
+
+<p align="center">
+  <img src="assets/buck-converter.jpg" width="400" alt="XL1509 buck converter">
+  <br><em>XL1509 adjustable buck converter — 19.5 V → 5 V</em>
+</p>
 
 ### Mechanical
 
@@ -71,8 +86,13 @@ The structure is inspired by a Cartesian 3D printer: two independent axes let yo
 **X axis (horizontal):** the second motor drives a carriage along 16 mm precision shafts via GT2 belt.
 
 <p align="center">
-  <img src="https://www.eirlab.net/wp-content/uploads/2026/04/image-1.png" width="400" alt="3D CAD of the structure">
-  <br><em>3D CAD — mechanical structure</em>
+  <img src="assets/cad-front.png" width="480" alt="CAD front view">
+  <br><em>Front view — 3D CAD of the mechanical structure</em>
+</p>
+
+<p align="center">
+  <img src="assets/cad-side.png" width="380" alt="CAD side view">
+  <br><em>Side view</em>
 </p>
 
 ### Tools required
@@ -91,14 +111,14 @@ The structure is inspired by a Cartesian 3D printer: two independent axes let yo
 The four panels are chained in series: a single data wire from **GPIO 5** runs through each panel in order. **A common ground between the ESP, panels, and Megatronics is mandatory** — without it, the data signal is interpreted randomly.
 
 <p align="center">
-  <img src="https://www.eirlab.net/wp-content/uploads/2026/04/schema_electronique.drawio-5-ce51f5.svg" width="600" alt="Wiring diagram">
+  <img src="assets/wiring-diagram.svg" width="600" alt="Wiring diagram">
   <br><em>Simplified wiring diagram</em>
 </p>
 
 The ESP32-S3 runs at 3.3 V and the ATmega2560 at 5 V — a BSS138 4-channel level shifter is required between the two.
 
 <p align="center">
-  <img src="https://www.eirlab.net/wp-content/uploads/2026/04/schema_level_shifter.drawio-edd719.svg" width="500" alt="Level shifter wiring">
+  <img src="assets/level-shifter.svg" width="500" alt="Level shifter wiring">
 </p>
 
 ---
@@ -127,14 +147,14 @@ PlatformIO downloads dependencies, compiles, and flashes automatically.
 The ESP32 has two cores: Wi-Fi handles HTTP requests on core 0, while LEDs compute and render on core 1. A mutex protects shared buffers — without it, random visual corruption occurs.
 
 <p align="center">
-  <img src="https://www.eirlab.net/wp-content/uploads/2026/04/firmware_deux_coeurs.drawio-1-24445a.svg" width="500" alt="Dual-core diagram">
+  <img src="assets/firmware-dual-core.svg" width="500" alt="Dual-core diagram">
   <br><em>Dual-core task architecture</em>
 </p>
 
 ### Image pipeline
 
 <p align="center">
-  <img src="https://www.eirlab.net/wp-content/uploads/2026/04/firmware_pipeline_image.drawio-2-77f24f.svg" width="500" alt="Image pipeline">
+  <img src="assets/firmware-pipeline.svg" width="500" alt="Image pipeline">
   <br><em>Effect → Topology mapping → Physical output</em>
 </p>
 
@@ -154,7 +174,7 @@ Switchable at runtime from the web interface — no recompilation needed. Resolu
 The Megatronics v3.3 runs Marlin on its ATmega2560. The ESP32 sends G-code over UART (Serial3, 115200 baud). Marlin handles acceleration and motion profiles natively.
 
 ```cpp
-// Relative mode movement — no need to track absolute position
+// Relative mode — no need to track absolute position
 snprintf(buf, sizeof(buf), "G91\nG1 Z%.1f X%.1f F%d\nG90", dz, dx, feedrate);
 Serial1.println(buf);
 ```
@@ -196,7 +216,7 @@ The interface works on any mobile browser.
 
 ## Adding your own animations
 
-The most accessible modification. In `effects.h`, all animations follow the same pattern:
+In `include/effects.h`, all animations follow the same pattern:
 
 ```cpp
 void myEffect() {

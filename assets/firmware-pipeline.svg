@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: transparent; background-color: transparent; color-scheme: light;" version="1.1" width="1191px" height="143px" viewBox="0 0 1191 143">
+  <defs></defs>
+  <g>
+    <g data-cell-id="0">
+      <g data-cell-id="1">
+        <g data-cell-id="10">
+          <g transform="translate(0.5,0.5)">
+            <rect x="20" y="12" width="160" height="60" rx="9" ry="9" fill="#dae8fc" stroke="#6c8ebf" style="fill: rgb(218, 232, 252); stroke: rgb(108, 142, 191);"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="100" y="46" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold">leds[]</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="11">
+          <g transform="translate(0.5,0.5)">
+            <rect x="0" y="82" width="200" height="60" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="100" y="99" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="10px" text-anchor="middle" font-style="italic">Tableau de pixels bruts...</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="20">
+          <g transform="translate(0.5,0.5)">
+            <path d="M 180 42 L 341.76 42" fill="none" stroke="#333" stroke-width="2" stroke-miterlimit="10" style="stroke: rgb(51, 51, 51);"></path>
+            <path d="M 347.76 42 L 339.76 46 L 341.76 42 L 339.76 38 Z" fill="#333" stroke="#333" stroke-width="2" stroke-miterlimit="10" style="fill: rgb(51, 51, 51); stroke: rgb(51, 51, 51);"></path>
+          </g>
+        </g>
+        <g data-cell-id="21">
+          <g transform="translate(0.5,0.5)">
+            <rect x="188" y="0" width="150" height="30" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="263" y="17" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="10px" text-anchor="middle" font-weight="bold">compositeFrame()</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="22">
+          <g transform="translate(0.5,0.5)">
+            <rect x="180" y="42" width="165" height="30" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="263" y="58" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="9px" text-anchor="middle" font-style="italic">superpose le texte...</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="30">
+          <g transform="translate(0.5,0.5)">
+            <rect x="350" y="12" width="180" height="60" rx="9" ry="9" fill="#d5e8d4" stroke="#82b366" style="fill: rgb(213, 232, 212); stroke: rgb(130, 179, 102);"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="440" y="46" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold">finalBuffer[]</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="31">
+          <g transform="translate(0.5,0.5)">
+            <rect x="335" y="82" width="210" height="60" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="440" y="99" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="10px" text-anchor="middle" font-style="italic">Effet + texte composités...</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="40">
+          <g transform="translate(0.5,0.5)">
+            <path d="M 530 42 L 691.76 42" fill="none" stroke="#333" stroke-width="2" stroke-miterlimit="10" style="stroke: rgb(51, 51, 51);"></path>
+            <path d="M 697.76 42 L 689.76 46 L 691.76 42 L 689.76 38 Z" fill="#333" stroke="#333" stroke-width="2" stroke-miterlimit="10" style="fill: rgb(51, 51, 51); stroke: rgb(51, 51, 51);"></path>
+          </g>
+        </g>
+        <g data-cell-id="41">
+          <g transform="translate(0.5,0.5)">
+            <rect x="538" y="0" width="150" height="30" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="613" y="17" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="10px" text-anchor="middle" font-weight="bold">flushToDisplay()</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="42">
+          <g transform="translate(0.5,0.5)">
+            <rect x="531.5" y="42" width="163" height="30" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="613" y="58" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="9px" text-anchor="middle" font-style="italic">réordonne selon câblage...</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="50">
+          <g transform="translate(0.5,0.5)">
+            <rect x="700" y="12" width="190" height="60" rx="9" ry="9" fill="#ffe6cc" stroke="#d79b00" style="fill: rgb(255, 230, 204); stroke: rgb(215, 155, 0);"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="795" y="46" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold">hardwareBuffer[]</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="51">
+          <g transform="translate(0.5,0.5)">
+            <rect x="685" y="82" width="220" height="60" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="795" y="99" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="10px" text-anchor="middle" font-style="italic">Pixels réordonnés...</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="60">
+          <g transform="translate(0.5,0.5)">
+            <path d="M 890 42 L 1021.76 42" fill="none" stroke="#333" stroke-width="2" stroke-miterlimit="10" style="stroke: rgb(51, 51, 51);"></path>
+            <path d="M 1027.76 42 L 1019.76 46 L 1021.76 42 L 1019.76 38 Z" fill="#333" stroke="#333" stroke-width="2" stroke-miterlimit="10" style="fill: rgb(51, 51, 51); stroke: rgb(51, 51, 51);"></path>
+          </g>
+        </g>
+        <g data-cell-id="61">
+          <g transform="translate(0.5,0.5)">
+            <rect x="898" y="0" width="120" height="30" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="958" y="17" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="10px" text-anchor="middle" font-weight="bold">FastLED.show()</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="62">
+          <g transform="translate(0.5,0.5)">
+            <rect x="895" y="42" width="126" height="30" fill="none" stroke="none"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="958" y="58" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="9px" text-anchor="middle" font-style="italic">envoi DMA...</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+        <g data-cell-id="70">
+          <g transform="translate(0.5,0.5)">
+            <rect x="1030" y="12" width="160" height="60" rx="9" ry="9" fill="#f5f5f5" stroke="#666666" style="fill: rgb(245, 245, 245); stroke: rgb(102, 102, 102);"></rect>
+          </g>
+          <g>
+            <g>
+              <switch>
+                <text x="1110" y="46" fill="light-dark(#000000, #ffffff)" font-family="Helvetica" font-size="12px" text-anchor="middle" font-weight="bold">LEDs WS2812B</text>
+              </switch>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
