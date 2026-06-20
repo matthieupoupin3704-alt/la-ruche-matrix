@@ -47,17 +47,17 @@ La Ruche Matrix is an interactive LED panel designed for music events. The audie
 
 <p align="center">
   <img src="assets/ws2812b-panel.jpg" width="400" alt="WS2812B 16×16 panel and connectors">
-  <br><em>WS2812B 16×16 panel — Data In, Power, Data Out</em>
+  <br><em>WS2812B 16×16 panel: Data In, Power, Data Out</em>
 </p>
 
 <p align="center">
   <img src="assets/megatronics.jpg" width="400" alt="Megatronics v3.3">
-  <br><em>Megatronics v3.3 — runs Marlin, controls the stepper motors</em>
+  <br><em>Megatronics v3.3: runs Marlin, controls the stepper motors</em>
 </p>
 
 <p align="center">
   <img src="assets/buck-converter.jpg" width="400" alt="XL1509 buck converter">
-  <br><em>XL1509 adjustable buck converter — 19.5 V → 5 V</em>
+  <br><em>XL1509 adjustable buck converter: 19.5 V → 5 V</em>
 </p>
 
 ### Mechanical
@@ -87,7 +87,7 @@ The structure is inspired by a Cartesian 3D printer: two independent axes let yo
 
 <p align="center">
   <img src="assets/cad-front.png" width="480" alt="CAD front view">
-  <br><em>Front view — 3D CAD of the mechanical structure</em>
+  <br><em>Front view: 3D CAD of the mechanical structure</em>
 </p>
 
 <p align="center">
