@@ -14,10 +14,10 @@ Built by Matthieu POUPIN & Marceau GUIGUI - Option Culture Maker, Eirlab / ENSEI
 
 La Ruche Matrix is an interactive LED panel designed for music events. The audience connects from their phone and can display scrolling text, draw pixel by pixel, or pick from 31 animations: all in real time, without any app.
 
-- **1 024 RGB LEDs** — 4 × WS2812B 16×16 panels chained together
-- **Wi-Fi control** — connect to the panel like a hotspot, open a browser, done
-- **31 animations** — Matrix rain, Pac-Man, Game of Life, Pong, 3D cube, audio visualizer...
-- **2-axis motorized structure** — repositions the panel without dismounting anything
+- **1 024 RGB LEDs:** 4 × WS2812B 16×16 panels chained together
+- **Wi-Fi control:** connect to the panel like a hotspot, open a browser, done
+- **31 animations:** Matrix rain, Pac-Man, Game of Life, Pong, 3D cube, audio visualizer...
+- **2-axis motorized structure:** repositions the panel without dismounting anything
 - **Budget: ~150–160 €**
 
 ---
@@ -106,16 +106,16 @@ The structure is inspired by a Cartesian 3D printer: two independent axes let yo
 
 ## Wiring
 
-19.5 V feeds the XL1509 buck converter, which steps down to 5 V. This 5 V goes into the ESP32-S3's `5V IN` pin; the ESP regulates internally to 3.3 V. The four WS2812B panels are powered from this 3.3 V rail — they tolerate it in practice, and FastLED caps total current at 500 mA. The motors are powered directly at 19.5 V through the Megatronics.
+19.5 V feeds the XL1509 buck converter, which steps down to 5 V. This 5 V goes into the ESP32-S3's `5V IN` pin; the ESP regulates internally to 3.3 V. The four WS2812B panels are powered from this 3.3 V rail. They tolerate it in practice, and FastLED caps total current at 500 mA. The motors are powered directly at 19.5 V through the Megatronics.
 
-The four panels are chained in series: a single data wire from **GPIO 5** runs through each panel in order. **A common ground between the ESP, panels, and Megatronics is mandatory** — without it, the data signal is interpreted randomly.
+The four panels are chained in series: a single data wire from **GPIO 5** runs through each panel in order. **A common ground between the ESP, panels, and Megatronics is mandatory**. Without it, the data signal is interpreted randomly.
 
 <p align="center">
   <img src="assets/wiring-diagram.svg" width="600" alt="Wiring diagram">
   <br><em>Simplified wiring diagram</em>
 </p>
 
-The ESP32-S3 runs at 3.3 V and the ATmega2560 at 5 V — a BSS138 4-channel level shifter is required between the two.
+The ESP32-S3 runs at 3.3 V and the ATmega2560 at 5 V. A BSS138 4-channel level shifter is required between the two.
 
 <p align="center">
   <img src="assets/level-shifter.svg" width="500" alt="Level shifter wiring">
@@ -205,12 +205,12 @@ The interface works on any mobile browser.
 
 ### What you can do
 
-- **Scrolling text** — type a message, pick one of 7 fonts (from tiny pixel art to large sans-serif), send. Text color adapts to the chosen hue.
-- **Freehand drawing** — touchscreen canvas for pixel-by-pixel drawing, with pencil, eraser, and a La Ruche logo button.
-- **31 animations** — Matrix rain, Doom corridor, Pac-Man, Game of Life, Pong, rotating 3D cube, audio visualizer, and more. Each reacts to hue, speed, and brightness. Some react to sound via the MAX9814 microphone.
-- **Panel movement** — touchscreen D-pad sends movement commands, with an emergency stop button.
-- **Auto mode** — the panel cycles through animations and fonts every 15 seconds automatically.
-- **Live preview** — toggle a real-time view of what's displayed on the panel in your browser, useful for technicians standing behind it.
+- **Scrolling text:** type a message, pick one of 7 fonts (from tiny pixel art to large sans-serif), send. Text color adapts to the chosen hue.
+- **Freehand drawing:** touchscreen canvas for pixel-by-pixel drawing, with pencil, eraser, and a La Ruche logo button.
+- **31 animations:** Matrix rain, Doom corridor, Pac-Man, Game of Life, Pong, rotating 3D cube, audio visualizer, and more. Each reacts to hue, speed, and brightness. Some react to sound via the MAX9814 microphone.
+- **Panel movement:** touchscreen D-pad sends movement commands, with an emergency stop button.
+- **Auto mode:** the panel cycles through animations and fonts every 15 seconds automatically.
+- **Live preview:** toggle a real-time view of what's displayed on the panel in your browser, useful for technicians standing behind it.
 
 ---
 
@@ -230,7 +230,7 @@ void myEffect() {
 - `COULEUR_HUE` is the hue chosen by the user
 - `MATRIX_W` / `MATRIX_H` adapt automatically to the active topology
 
-Then add the function to `_table[]`, its name to `_names[]`, and increment `COUNT` — the interface picks it up automatically.
+Then add the function to `_table[]`, its name to `_names[]`, and increment `COUNT`: the interface picks it up automatically.
 
 ---
 
