@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: transparent; background-color: transparent; color-scheme: light;" version="1.1" width="581px" height="251px" viewBox="0 0 581 251">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="background: transparent; background-color: transparent; color-scheme: light dark;" version="1.1" width="581px" height="251px" viewBox="0 0 581 251">
   <defs></defs>
   <g>
     <g data-cell-id="0">
@@ -64,7 +64,7 @@
             <path d="M 62.6 168.08 L 62.6 241.92 L 122.72 241.92 L 122.72 168.08 Z" fill="none" stroke="#6c8ebf" stroke-miterlimit="10" style="stroke: rgb(108, 142, 191);"></path>
           </g>
           <g>
-            <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px" style="fill: rgb(0, 0, 0);">
+            <g fill="light-dark(#000000, #ffffff)" font-family="Helvetica" text-anchor="middle" font-size="10px" style="fill: light-dark(#000000, #ffffff);">
               <text x="92.5" y="209">Téléphone</text>
             </g>
           </g>
