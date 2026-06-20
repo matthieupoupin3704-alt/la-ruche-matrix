@@ -189,7 +189,7 @@ In `marlin_config/Configuration.h`:
 #define BAUDRATE_2 115200
 ```
 
-> **Note:** The vertical motor is wired to the Z slot on the Megatronics, not Y — the Y driver was faulty on this salvaged board.
+> **Note:** The vertical motor is wired to the Z slot on the Megatronics, not Y. The Y driver was faulty on this salvaged board.
 
 ---
 
