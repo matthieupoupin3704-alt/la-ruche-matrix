@@ -2,7 +2,7 @@
 
 **Wi-Fi controlled LED matrix panel for live events — ESP32-S3 + 1024 WS2812B LEDs on a motorized 2-axis structure.**
 
-Built by Matthieu POUPIN & Marceau GUIGUI — Option Culture Maker, Eirlab / ENSEIRB-MATMECA, 2026.
+Built by Matthieu POUPIN & Marceau GUIGUI - Option Culture Maker, Eirlab / ENSEIRB-MATMECA, 2026.
 
 <p align="center">
   <img src="https://www.eirlab.net/wp-content/uploads/2026/04/ezgif-735ffa8b635d59f4-576x1024.gif" width="360" alt="La Ruche Matrix in action">
@@ -12,7 +12,7 @@ Built by Matthieu POUPIN & Marceau GUIGUI — Option Culture Maker, Eirlab / ENS
 
 ## Overview
 
-La Ruche Matrix is an interactive LED panel designed for music events. The audience connects from their phone and can display scrolling text, draw pixel by pixel, or pick from 31 animations — all in real time, without any app.
+La Ruche Matrix is an interactive LED panel designed for music events. The audience connects from their phone and can display scrolling text, draw pixel by pixel, or pick from 31 animations: all in real time, without any app.
 
 - **1 024 RGB LEDs** — 4 × WS2812B 16×16 panels chained together
 - **Wi-Fi control** — connect to the panel like a hotspot, open a browser, done
