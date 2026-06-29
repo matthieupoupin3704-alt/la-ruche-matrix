@@ -36,14 +36,14 @@ La Ruche Matrix is an interactive LED panel designed for music events. The audie
 
 | Component | Qty | Notes |
 |-----------|-----|-------|
-| ESP32-S3-N16R8 | 1 | Main controller — Wi-Fi, native USB, 16 MB flash |
+| ESP32-S3-N16R8 | 1 | Main controller: Wi-Fi, native USB, 16 MB flash |
 | WS2812B 16×16 LED panels | 4 | Individually addressable, chained in series |
-| Megatronics v3.3 | 1 | Salvaged — runs Marlin, controls motors via ATmega2560 |
+| Megatronics v3.3 | 1 | Salvaged, runs Marlin, controls motors via ATmega2560 |
 | 19.5 V PSU (modified PC adapter) | 1 | Salvaged |
 | XL1509 buck converter | 1 | 19.5 V → 5 V, powers ESP32 |
 | BSS138 4-channel level shifter | 1 | 3.3 V ↔ 5 V between ESP32 and Megatronics |
 | MAX9814 microphone | 1 | Audio-reactive animations |
-| Wires, connectors, perfboard | — | |
+| Wires, connectors, perfboard | | |
 
 <p align="center">
   <img src="assets/ws2812b-panel.jpg" width="400" alt="WS2812B 16×16 panel and connectors">
@@ -70,18 +70,18 @@ The structure is inspired by a Cartesian 3D printer: two independent axes let yo
 | SH8/SK8 shaft supports | 4 | 4.26 € |
 | SC16UU linear bearings (∅16 mm) | 4 | 15.27 € |
 | SC8UU linear bearings (∅8 mm) | 2 | 4.95 € |
-| ∅16 mm h6 precision shaft — 500 mm | 2 | 9.64 € |
-| ∅8 mm h6 precision shaft — 500 mm | 2 | 5.91 € |
-| TR10×4P2 trapezoidal leadscrew — 500 mm | 2 | 5.85 € |
+| ∅16 mm h6 precision shaft (500 mm) | 2 | 9.64 € |
+| ∅8 mm h6 precision shaft (500 mm) | 2 | 5.91 € |
+| TR10×4P2 trapezoidal leadscrew (500 mm) | 2 | 5.85 € |
 | TR10×4P2 bronze/alu leadscrew nut | 2 | 31.63 € |
 | D20L25 flexible coupling (5/10 mm) | 2 | 6.60 € |
 | GT2 open belt 6 mm (~1 000 mm) | 4 | 7.15 € |
 | GT2 20-tooth pulley (5 mm bore) | 2 | 2.27 € |
 | NEMA 17 stepper motors (42SH0034D) | 2 | Salvaged (~10 € each otherwise) |
-| PLA printed parts | — | STL files in this repo |
-| Aluminium profiles + hardware | — | Frame reinforcement |
+| PLA printed parts | | STL files in this repo |
+| Aluminium profiles + hardware | | Frame reinforcement |
 
-**Y axis (vertical):** a NEMA 17 drives a TR10×4P2 trapezoidal leadscrew. A second screw synchronized by belt ensures parallel motion. The bronze nut integral to the carriage moves up or down as the screw turns — slow, precise, and self-locking (no power needed to hold position).
+**Y axis (vertical):** a NEMA 17 drives a TR10×4P2 trapezoidal leadscrew. A second screw synchronized by belt ensures parallel motion. The bronze nut integral to the carriage moves up or down as the screw turns: slow, precise, and self-locking (no power needed to hold position).
 
 **X axis (horizontal):** the second motor drives a carriage along 16 mm precision shafts via GT2 belt.
 
@@ -140,11 +140,11 @@ PlatformIO downloads dependencies, compiles, and flashes automatically.
 | File | Role |
 |------|------|
 | `src/main.cpp` | Web server, scrolling text, settings persistence, dual-core task management |
-| `include/effects.h` | 31 animations — each effect is an independent function |
+| `include/effects.h` | 31 animations, each effect is an independent function |
 
 ### Dual-core architecture
 
-The ESP32 has two cores: Wi-Fi handles HTTP requests on core 0, while LEDs compute and render on core 1. A mutex protects shared buffers — without it, random visual corruption occurs.
+The ESP32 has two cores: Wi-Fi handles HTTP requests on core 0, while LEDs compute and render on core 1. A mutex protects shared buffers (without it, random visual corruption occurs).
 
 <p align="center">
   <img src="assets/firmware-dual-core.svg" width="500" alt="Dual-core diagram">
@@ -160,7 +160,7 @@ The ESP32 has two cores: Wi-Fi handles HTTP requests on core 0, while LEDs compu
 
 ### Topologies
 
-Switchable at runtime from the web interface — no recompilation needed. Resolution (`matW`, `matH`) and active LED count are global variables recalculated on the fly. Choice is persisted in ESP flash.
+Switchable at runtime from the web interface, no recompilation needed. Resolution (`matW`, `matH`) and active LED count are global variables recalculated on the fly. Choice is persisted in ESP flash.
 
 | Topology | Resolution | Panels |
 |----------|-----------|--------|
@@ -174,7 +174,7 @@ Switchable at runtime from the web interface — no recompilation needed. Resolu
 The Megatronics v3.3 runs Marlin on its ATmega2560. The ESP32 sends G-code over UART (Serial3, 115200 baud). Marlin handles acceleration and motion profiles natively.
 
 ```cpp
-// Relative mode — no need to track absolute position
+// Relative mode: no need to track absolute position
 snprintf(buf, sizeof(buf), "G91\nG1 Z%.1f X%.1f F%d\nG90", dz, dx, feedrate);
 Serial1.println(buf);
 ```
@@ -237,7 +237,7 @@ Then add the function to `_table[]`, its name to `_names[]`, and increment `COUN
 ## Known limitations
 
 - **Y axis:** mechanical roughness on one of the vertical shafts now blocks movement
-- **X axis:** GT2 belt was particularly difficult to set up — a leadscrew would have been a better choice here
+- **X axis:** GT2 belt was particularly difficult to set up (a leadscrew would have been a better choice here)
 
 ---
 
