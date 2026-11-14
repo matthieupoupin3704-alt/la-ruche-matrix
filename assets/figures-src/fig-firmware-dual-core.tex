@@ -1,0 +1,19 @@
+\documentclass[tikz,border=8pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+  \node[block, minimum width=44mm, minimum height=24mm, align=left] (c0) at (0,0)
+    {\textbf{Core 0}\enspace\textcolor{muted}{\scriptsize WebTask}\\[3pt]
+     \scriptsize Wi-Fi / TCP stack\\ \scriptsize HTTP web server\\ \scriptsize G-code to motors (Serial1)};
+  \node[block, minimum width=44mm, minimum height=24mm, align=left] (c1) at (11.2,0)
+    {\textbf{Core 1}\enspace\textcolor{muted}{\scriptsize LedTask}\\[3pt]
+     \scriptsize effects and scrolling text\\ \scriptsize frame compositing\\ \scriptsize \texttt{FastLED.show()}};
+  \node[block, minimum width=30mm, draw=orange] (mx) at (5.6,0) {\texttt{matrixMutex}\\[1pt]\textcolor{muted}{\scriptsize shared buffers}};
+  \node[block] (phone) at (0,-3.2) {Phone browser};
+  \node[block] (leds) at (11.2,-3.2) {WS2812B panels};
+  \draw[biwire, orange] (c0) -- node[above, lbl]{take / give} (mx);
+  \draw[biwire, orange] (mx) -- node[above, lbl]{take / give} (c1);
+  \draw[biwire, blue, dashed] (phone) -- node[right, lbl]{Wi-Fi (HTTP)} (c0);
+  \draw[wire, blue] (c1) -- node[right, lbl]{GPIO 13} (leds);
+\end{tikzpicture}
+\end{document}

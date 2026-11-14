@@ -1,0 +1,22 @@
+\documentclass[tikz,border=8pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+  \node[block, minimum width=30mm, minimum height=38mm] (esp) at (0,0) {};
+  \node[font=\small\bfseries, anchor=north] at (esp.north) {ESP32-S3};
+  \node[sub, anchor=south] at (esp.south) {3.3 V logic};
+  \node[block, minimum width=34mm, minimum height=38mm] (bss) at (5.6,0) {};
+  \node[font=\small\bfseries, anchor=north] at (bss.north) {BSS138};
+  \node[block, minimum width=32mm, minimum height=38mm] (mega) at (11.2,0) {};
+  \node[font=\small\bfseries, anchor=north] at (mega.north) {Megatronics v3.3};
+  \node[sub, anchor=south] at (mega.south) {5 V logic};
+  \foreach \y/\l/\lv/\hv/\r/\c/\st in {0.75/3.3 V/LV/HV/5 V/green/-, 0.15/GPIO 43 (TX)/A1/B1/D15 (RX3)/purple/{-{Stealth[length=2.4mm]}}, -0.45/GPIO 44 (RX)/A2/B2/D14 (TX3)/purple/{{Stealth[length=2.4mm]}-}, -1.05/GND/GND/GND/GND/red/-}{
+    \node[font=\scriptsize, anchor=east] at ([xshift=-1.5mm]esp.east |- 0,\y) {\l};
+    \node[font=\scriptsize, anchor=west] at ([xshift=1.5mm]bss.west |- 0,\y) {\lv};
+    \node[font=\scriptsize, anchor=east] at ([xshift=-1.5mm]bss.east |- 0,\y) {\hv};
+    \node[font=\scriptsize, anchor=west] at ([xshift=1.5mm]mega.west |- 0,\y) {\r};
+    \draw[line width=1pt, \c, \st] (esp.east |- 0,\y) -- (bss.west |- 0,\y);
+    \draw[line width=1pt, \c, \st] (bss.east |- 0,\y) -- (mega.west |- 0,\y);
+  }
+\end{tikzpicture}
+\end{document}

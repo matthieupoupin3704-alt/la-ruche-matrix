@@ -12,13 +12,13 @@ Built by Matthieu POUPIN & Marceau GUIGUI - Option Culture Maker, Eirlab / ENSEI
 
 ## Overview
 
-La Ruche Matrix is an interactive LED panel designed for music events. The audience connects from their phone and can display scrolling text, draw pixel by pixel, or pick from 31 animations: all in real time, without any app.
+La Ruche Matrix is an LED panel for music events. People in the audience connect from their phone and can send scrolling text, draw pixel by pixel or pick one of 31 animations. Everything updates in real time, and no app is needed.
 
-- **1 024 RGB LEDs:** 4 × WS2812B 16×16 panels chained together
-- **Wi-Fi control:** connect to the panel like a hotspot, open a browser, done
-- **31 animations:** Matrix rain, Pac-Man, Game of Life, Pong, 3D cube, audio visualizer...
-- **2-axis motorized structure:** repositions the panel without dismounting anything
-- **Budget: ~150–160 €**
+- 1 024 RGB LEDs on four chained WS2812B 16×16 panels
+- Wi-Fi control: the panel is its own access point, and the interface opens in any browser
+- 31 animations, including Matrix rain, Pac-Man, Game of Life, Pong, a 3D cube and an audio visualizer
+- A motorized 2-axis structure that moves the panel without taking it down
+- Budget: about 150 to 160 €
 
 ---
 
@@ -42,7 +42,7 @@ La Ruche Matrix is an interactive LED panel designed for music events. The audie
 | 19.5 V PSU (modified PC adapter) | 1 | Salvaged |
 | XL1509 buck converter | 1 | 19.5 V → 5 V, powers ESP32 |
 | BSS138 4-channel level shifter | 1 | 3.3 V ↔ 5 V between ESP32 and Megatronics |
-| MAX9814 microphone | 1 | Audio-reactive animations |
+| MAX9814 microphone | 1 | Optional, for audio-reactive animations |
 | Wires, connectors, perfboard | | |
 
 <p align="center">
@@ -62,7 +62,7 @@ La Ruche Matrix is an interactive LED panel designed for music events. The audie
 
 ### Mechanical
 
-The structure is inspired by a Cartesian 3D printer: two independent axes let you reposition the panel in space without unmounting it from the light bridge.
+The structure works like a Cartesian 3D printer: two independent axes move the panel while it stays mounted on the lighting truss.
 
 | Component | Qty | Unit price |
 |-----------|-----|-----------|
@@ -81,9 +81,9 @@ The structure is inspired by a Cartesian 3D printer: two independent axes let yo
 | PLA printed parts | | STL files in this repo |
 | Aluminium profiles + hardware | | Frame reinforcement |
 
-**Y axis (vertical):** a NEMA 17 drives a TR10×4P2 trapezoidal leadscrew. A second screw synchronized by belt ensures parallel motion. The bronze nut integral to the carriage moves up or down as the screw turns: slow, precise, and self-locking (no power needed to hold position).
+**Y axis (vertical):** a NEMA 17 turns a TR10×4P2 trapezoidal leadscrew, and a belt drives a second screw so both sides move together. The bronze nut fixed to the carriage moves up or down as the screws turn. The motion is slow but precise, and the screw is self-locking, so the panel holds its position with the motor unpowered.
 
-**X axis (horizontal):** the second motor drives a carriage along 16 mm precision shafts via GT2 belt.
+**X axis (horizontal):** the second motor pulls a carriage along 16 mm precision shafts with a GT2 belt.
 
 <p align="center">
   <img src="assets/cad-front.png" width="480" alt="CAD front view">
@@ -106,19 +106,25 @@ The structure is inspired by a Cartesian 3D printer: two independent axes let yo
 
 ## Wiring
 
-19.5 V feeds the XL1509 buck converter, which steps down to 5 V. This 5 V goes into the ESP32-S3's `5V IN` pin; the ESP regulates internally to 3.3 V. The four WS2812B panels are powered from this 3.3 V rail. They tolerate it in practice, and FastLED caps total current at 500 mA. The motors are powered directly at 19.5 V through the Megatronics.
+The 19.5 V supply feeds the XL1509 buck converter, which outputs 5 V to the ESP32-S3's `5V IN` pin. The ESP regulates this down to 3.3 V, and the four WS2812B panels run from that 3.3 V rail. They work fine at this voltage in practice, and FastLED limits the total current to 500 mA. The motors take 19.5 V directly through the Megatronics.
 
-The four panels are chained in series: a single data wire from **GPIO 5** runs through each panel in order. **A common ground between the ESP, panels, and Megatronics is mandatory**. Without it, the data signal is interpreted randomly.
+The panels are chained in series, so a single data wire from GPIO 13 goes through all four in order. The ESP, the panels and the Megatronics must share a common ground. Without it, the panels read the data signal as noise.
 
 <p align="center">
-  <img src="assets/wiring-diagram.svg" width="600" alt="Wiring diagram">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/wiring-diagram-dark.svg">
+    <img src="assets/wiring-diagram-light.svg" width="600" alt="Wiring diagram">
+  </picture>
   <br><em>Simplified wiring diagram</em>
 </p>
 
-The ESP32-S3 runs at 3.3 V and the ATmega2560 at 5 V. A BSS138 4-channel level shifter is required between the two.
+The ESP32-S3 uses 3.3 V logic and the ATmega2560 uses 5 V, so the UART link goes through a BSS138 level shifter.
 
 <p align="center">
-  <img src="assets/level-shifter.svg" width="500" alt="Level shifter wiring">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/level-shifter-dark.svg">
+    <img src="assets/level-shifter-light.svg" width="500" alt="Level shifter wiring">
+  </picture>
 </p>
 
 ---
@@ -133,7 +139,7 @@ The ESP32-S3 runs at 3.3 V and the ATmega2560 at 5 V. A BSS138 4-channel level s
 4. Plug in the ESP32-S3 via USB-C (N16R8 recommended for RAM)
 5. In PlatformIO: click **Upload** (`esp32dev` environment)
 
-PlatformIO downloads dependencies, compiles, and flashes automatically.
+PlatformIO then downloads the libraries, compiles and flashes the board.
 
 ### Code structure
 
@@ -144,23 +150,29 @@ PlatformIO downloads dependencies, compiles, and flashes automatically.
 
 ### Dual-core architecture
 
-The ESP32 has two cores: Wi-Fi handles HTTP requests on core 0, while LEDs compute and render on core 1. A mutex protects shared buffers (without it, random visual corruption occurs).
+The web server runs on core 0, next to the Wi-Fi stack, and the LED rendering runs on core 1. A mutex protects the buffers both tasks share; without it, frames get corrupted at random.
 
 <p align="center">
-  <img src="assets/firmware-dual-core.svg" width="500" alt="Dual-core diagram">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/firmware-dual-core-dark.svg">
+    <img src="assets/firmware-dual-core-light.svg" width="500" alt="Dual-core diagram">
+  </picture>
   <br><em>Dual-core task architecture</em>
 </p>
 
 ### Image pipeline
 
 <p align="center">
-  <img src="assets/firmware-pipeline.svg" width="500" alt="Image pipeline">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/firmware-pipeline-dark.svg">
+    <img src="assets/firmware-pipeline-light.svg" width="760" alt="Image pipeline">
+  </picture>
   <br><em>Effect → Topology mapping → Physical output</em>
 </p>
 
 ### Topologies
 
-Switchable at runtime from the web interface, no recompilation needed. Resolution (`matW`, `matH`) and active LED count are global variables recalculated on the fly. Choice is persisted in ESP flash.
+The topology can be changed from the web interface without recompiling. The resolution (`matW`, `matH`) and the number of active LEDs are global variables recomputed on the fly, and the choice is saved in the ESP's flash.
 
 | Topology | Resolution | Panels |
 |----------|-----------|--------|
@@ -171,25 +183,25 @@ Switchable at runtime from the web interface, no recompilation needed. Resolutio
 
 ### Motor control
 
-The Megatronics v3.3 runs Marlin on its ATmega2560. The ESP32 sends G-code over UART (Serial3, 115200 baud). Marlin handles acceleration and motion profiles natively.
+The Megatronics v3.3 runs Marlin on its ATmega2560. The ESP32 sends G-code from its Serial1 to Marlin's Serial3 at 115200 baud, and Marlin takes care of acceleration. Moves are absolute and clamped to software endstops:
 
 ```cpp
-// Relative mode: no need to track absolute position
-snprintf(buf, sizeof(buf), "G91\nG1 Z%.1f X%.1f F%d\nG90", dz, dx, feedrate);
-Serial1.println(buf);
+x = constrain(x, 0.0f, MOTOR_X_MAX);
+y = constrain(y, 0.0f, MOTOR_Y_MAX);
+snprintf(buf, sizeof(buf), "G1 X%.1f Y%.1f F%d", x, y, feedrate);
+motorSend(buf);
 ```
 
-Emergency stop sends `M410` immediately.
+The emergency stop button sends `M410`.
 
 In `marlin_config/Configuration.h`:
 
 ```cpp
-#define SERIAL_PORT 0      // ATmega native USB
-#define SERIAL_PORT_2 3    // Serial3 → ESP32
-#define BAUDRATE_2 115200
+#define SERIAL_PORT 3      // Serial3 (NXT connector, D14/D15) → ESP32
+#define BAUDRATE 115200
 ```
 
-> **Note:** The vertical motor is wired to the Z slot on the Megatronics, not Y. The Y driver was faulty on this salvaged board.
+> **Note:** the vertical motor is plugged into the Z slot of the Megatronics, because the Y driver on this salvaged board was faulty.
 
 ---
 
@@ -201,16 +213,16 @@ In `marlin_config/Configuration.h`:
 2. On your phone: Wi-Fi → connect to **La-Ruche-Matrix**
 3. Open a browser and go to `192.168.4.1`
 
-The interface works on any mobile browser.
+Any mobile browser works.
 
 ### What you can do
 
-- **Scrolling text:** type a message, pick one of 7 fonts (from tiny pixel art to large sans-serif), send. Text color adapts to the chosen hue.
-- **Freehand drawing:** touchscreen canvas for pixel-by-pixel drawing, with pencil, eraser, and a La Ruche logo button.
-- **31 animations:** Matrix rain, Doom corridor, Pac-Man, Game of Life, Pong, rotating 3D cube, audio visualizer, and more. Each reacts to hue, speed, and brightness. Some react to sound via the MAX9814 microphone.
-- **Panel movement:** touchscreen D-pad sends movement commands, with an emergency stop button.
-- **Auto mode:** the panel cycles through animations and fonts every 15 seconds automatically.
-- **Live preview:** toggle a real-time view of what's displayed on the panel in your browser, useful for technicians standing behind it.
+- Scrolling text: type a message, pick one of 7 fonts (from tiny pixel fonts to a large sans-serif) and send it. The text takes the selected hue.
+- Drawing: a touch canvas to draw pixel by pixel, with a pencil, an eraser and a button that draws the La Ruche logo.
+- Animations: the 31 effects (Matrix rain, Doom corridor, Pac-Man, Game of Life, Pong, rotating 3D cube, audio visualizer...) follow the hue, speed and brightness settings. Some react to sound when the MAX9814 microphone is enabled (`MIC_ENABLED` in `main.cpp`).
+- Movement: an on-screen D-pad moves the panel, with an emergency stop button.
+- Auto mode: the panel switches animation and font every 15 seconds.
+- Live preview: shows in the browser what the panel is displaying, handy for whoever stands behind it.
 
 ---
 
@@ -230,28 +242,26 @@ void myEffect() {
 - `COULEUR_HUE` is the hue chosen by the user
 - `MATRIX_W` / `MATRIX_H` adapt automatically to the active topology
 
-Then add the function to `_table[]`, its name to `_names[]`, and increment `COUNT`: the interface picks it up automatically.
+Then add the function to `_table[]`, its name to `_names[]`, and increment `COUNT`. The web interface lists it automatically.
 
 ---
 
 ## Known limitations
 
-- **Y axis:** mechanical roughness on one of the vertical shafts now blocks movement
-- **X axis:** GT2 belt was particularly difficult to set up (a leadscrew would have been a better choice here)
+- Y axis: one of the vertical shafts has a rough spot that now blocks the movement.
+- X axis: the GT2 belt was hard to tension correctly. A leadscrew would have been a better choice.
 
 ---
 
 ## Acknowledgements
 
-Thanks to [Eirlab](https://www.eirlab.net/) for providing the workspace, equipment loans, and material purchases that made this project possible.
-
-Special thanks to **Julien Allali**, **Antonio Berejano**, and **Adrien Boussicault** for their guidance and support throughout the project.
+Thanks to [Eirlab](https://www.eirlab.net/) for the workspace, the equipment we borrowed and the parts it bought for the project, and to Julien Allali, Antonio Berejano and Adrien Boussicault for their help along the way.
 
 ---
 
 ## License
 
-Open source. Code and CAD files available in this repository.
+The code and CAD files are in this repository.
 
 ---
 

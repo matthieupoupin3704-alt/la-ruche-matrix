@@ -1,0 +1,13 @@
+\documentclass[tikz,border=8pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=33mm]
+  \node[block, minimum width=27mm] (a) {\texttt{leds[]}\\[1pt]\textcolor{muted}{\scriptsize raw effect pixels}};
+  \node[block, minimum width=27mm, right=of a] (b) {\texttt{finalBuffer[]}\\[1pt]\textcolor{muted}{\scriptsize effect + text}};
+  \node[block, minimum width=27mm, right=of b] (c) {\texttt{hardwareBuffer[]}\\[1pt]\textcolor{muted}{\scriptsize wiring order}};
+  \node[block, minimum width=27mm, right=of c] (d) {WS2812B panels};
+  \draw[wire, blue] (a) -- node[above, lbl]{\texttt{compositeFrame()}} node[below, lbl]{overlay text} (b);
+  \draw[wire, blue] (b) -- node[above, lbl]{\texttt{flushToDisplay()}} node[below, lbl]{topology remap} (c);
+  \draw[wire, blue] (c) -- node[above, lbl]{\texttt{FastLED.show()}} node[below, lbl]{GPIO 13} (d);
+\end{tikzpicture}
+\end{document}
