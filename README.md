@@ -106,9 +106,9 @@ The structure works like a Cartesian 3D printer: two independent axes move the p
 
 ## Wiring
 
-The 19.5 V supply feeds the XL1509 buck converter, which outputs 5 V to the ESP32-S3's `5V IN` pin. The ESP regulates this down to 3.3 V, and the four WS2812B panels run from that 3.3 V rail. They work fine at this voltage in practice, and FastLED limits the total current to 500 mA. The motors take 19.5 V directly through the Megatronics.
+The 19.5 V supply feeds the XL1509 buck converter, which outputs 5 V to the ESP32-S3's `5V IN` pin. The ESP regulates this down to 3.3 V, and the four WS2812B panels run from that 3.3 V rail. They tolerate this voltage in practice, and FastLED limits the total current to 500 mA. The motors take 19.5 V directly through the Megatronics.
 
-The panels are chained in series, so a single data wire from GPIO 13 goes through all four in order. The ESP, the panels and the Megatronics must share a common ground. Without it, the panels read the data signal as noise.
+The panels are chained in series, so a single data wire from GPIO 13 goes through all four in order. The ESP, the panels and the Megatronics must share a common ground. Without it, the data signal is not read reliably.
 
 <p align="center">
   <picture>
@@ -150,7 +150,7 @@ PlatformIO then downloads the libraries, compiles and flashes the board.
 
 ### Dual-core architecture
 
-The web server runs on core 0, next to the Wi-Fi stack, and the LED rendering runs on core 1. A mutex protects the buffers both tasks share; without it, frames get corrupted at random.
+The web server runs on core 0, next to the Wi-Fi stack, and the LED rendering runs on core 1. A mutex protects the buffers shared by both tasks; without it, the display shows random corruption.
 
 <p align="center">
   <picture>
@@ -213,7 +213,7 @@ In `marlin_config/Configuration.h`:
 2. On your phone: Wi-Fi → connect to **La-Ruche-Matrix**
 3. Open a browser and go to `192.168.4.1`
 
-Any mobile browser works.
+The interface works in any mobile browser.
 
 ### What you can do
 
@@ -222,7 +222,7 @@ Any mobile browser works.
 - Animations: the 31 effects (Matrix rain, Doom corridor, Pac-Man, Game of Life, Pong, rotating 3D cube, audio visualizer...) follow the hue, speed and brightness settings. Some react to sound when the MAX9814 microphone is enabled (`MIC_ENABLED` in `main.cpp`).
 - Movement: an on-screen D-pad moves the panel, with an emergency stop button.
 - Auto mode: the panel switches animation and font every 15 seconds.
-- Live preview: shows in the browser what the panel is displaying, handy for whoever stands behind it.
+- Live preview: displays in the browser what the panel shows, useful for technicians standing behind it.
 
 ---
 
@@ -255,7 +255,7 @@ Then add the function to `_table[]`, its name to `_names[]`, and increment `COUN
 
 ## Acknowledgements
 
-Thanks to [Eirlab](https://www.eirlab.net/) for the workspace, the equipment we borrowed and the parts it bought for the project, and to Julien Allali, Antonio Berejano and Adrien Boussicault for their help along the way.
+Thanks to [Eirlab](https://www.eirlab.net/) for the workspace, the equipment we borrowed and the parts it bought for the project, and to Julien Allali, Antonio Berejano and Adrien Boussicault for their guidance.
 
 ---
 
